@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>974 Hotel | Adaptive Container Hotel — Interactive 3D V4</title>
+<style>
+:root{--bg:#151b28;--panel:#101622ef;--line:#394252;--text:#f8f1e9;--muted:#b8c4c8;--accent:#e6b87c;--wine:#832e4a}
+*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Arial,sans-serif;color:var(--text);background:var(--bg)}
+body{overflow:hidden}.app{display:grid;grid-template-columns:minmax(0,1fr) 324px;height:100dvh}
+.viewport{position:relative;min-height:0;overflow:hidden;background:linear-gradient(180deg,#bd8593 0%,#efc4a3 37%,#889eab 67%,#415569 100%)}
+#sky,#gl{position:absolute;inset:0;width:100%;height:100%;display:block}#sky{pointer-events:none}#gl{touch-action:none;cursor:grab}#gl:active{cursor:grabbing}
+.brand{position:absolute;left:24px;top:19px;pointer-events:none;text-shadow:0 2px 13px #17212c9a}.brand small{font-size:10px;font-weight:800;letter-spacing:.19em;color:#fae4cd}.brand h1{font-size:34px;line-height:1;margin:8px 0 5px;font-weight:790;letter-spacing:-.05em}.brand h1 span{color:#ffd494}.brand p{margin:0;color:#fff3eb;font-size:12px}
+.legend{position:absolute;left:20px;bottom:20px;max-width:455px;background:#101b2dbb;border:1px solid #f8e5cd3f;backdrop-filter:blur(8px);border-radius:13px;padding:11px 14px;font-size:12px;color:#fff3e8;line-height:1.7}.legend b{color:#f4c48b}.legend .hint{color:#d4dcdf;font-size:11px}
+.viewcontrols{position:absolute;top:20px;right:20px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;max-width:375px}
+button{font:inherit;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}button:focus-visible{outline:2px solid #f8d194;outline-offset:2px}
+.pill{background:#172338c9;border:1px solid #f8e5cc69;border-radius:30px;color:#fff6ed;padding:8px 11px;font-size:11px;font-weight:750;backdrop-filter:blur(8px)}.pill:hover,.pill.selected{background:#f1c38d;color:#30201a;border-color:#f6dcae}
+.sidebar{overflow-y:auto;border-left:1px solid var(--line);background:linear-gradient(155deg,#111d2b,#202231 70%,#2d2431);padding:24px 23px 30px}.eyebrow{font-size:10px;letter-spacing:.19em;font-weight:800;color:var(--accent)}.sidebar h2{font-size:25px;letter-spacing:-.04em;line-height:1.1;margin:9px 0 12px}.sidebar p{font-size:12px;line-height:1.65;color:#bfc8ce;margin:0 0 19px}.sidebar h3{font-size:13px;margin:24px 0 10px;color:#f8e3c3}.group{display:grid;gap:8px}.mode{padding:12px 13px;text-align:left;border-radius:11px;background:#263040;border:1px solid #48515c;color:#f5f0ed}.mode strong{display:block;font-size:13px;margin-bottom:3px}.mode span{display:block;color:#bbc8cd;font-size:11px;line-height:1.45}.mode.active{border-color:#ffd596;background:#4a3840}.mode.active strong{color:#ffe0a9}.mode:hover{border-color:#caa47c}
+.stepper{display:flex;align-items:center;gap:9px;padding:10px 12px;background:#182536;border:1px solid #384655;border-radius:12px}.stepper button{width:34px;height:34px;border-radius:8px;background:#374454;border:1px solid #596678;color:#fff;font-size:19px}.stepper output{font-size:20px;font-weight:800;color:#f6d4a1;min-width:23px;text-align:center}.stepper label{flex:1;color:#d4dbe0;font-size:12px;line-height:1.3}
+.floorplan{margin-top:13px;padding:12px;background:#152435;border:1px solid #3d505e;border-radius:12px}.floorplan svg{display:block;width:100%;height:auto;max-height:115px;margin:8px auto 4px}.floorplan small{color:#e7bb80;font-size:9px;font-weight:800;letter-spacing:.12em}.floorplan .explain{color:#aebec4;font-size:10px;line-height:1.4;margin:0}.status{margin-top:14px;background:#2e2a35;padding:13px;border:1px solid #58444a;border-radius:12px}.status .count{font-size:23px;font-weight:800;color:#f6cd90}.status p{margin:6px 0 0;font-size:11px}.note{color:#aab7bc;font-size:11px;line-height:1.55}.outlinebtn{width:100%;padding:11px 13px;border-radius:10px;color:#fff3dd;background:#26384a;border:1px solid #77818d;font-size:12px;font-weight:750;margin-top:10px}.outlinebtn:hover{background:#3a4b59}
+#loader{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:14px;letter-spacing:.03em;padding:14px 20px;border-radius:12px;background:#172533db}
+#tooltip{position:absolute;display:none;padding:7px 10px;font-size:11px;font-weight:750;background:#172438e5;border:1px solid #ffd1a0;border-radius:8px;pointer-events:none}
+@media(max-width:850px){body{overflow:auto}.app{display:block;height:auto}.viewport{height:65dvh;min-height:430px}.sidebar{height:auto;overflow:visible}.brand h1{font-size:28px}.viewcontrols{top:auto;bottom:110px;left:16px;right:16px;justify-content:flex-start;max-width:none}.legend{left:14px;right:14px;bottom:12px;max-width:none;font-size:10px}.sidebar{padding:21px}}
+</style></head><body><div class="app"><main class="viewport" id="viewport"><canvas id="sky" aria-hidden="true"></canvas><canvas id="gl" aria-label="Interactive 3D model of 974 Hotel modular waterfront resort"></canvas>
+<div class="brand"><small>STADIUM 974 · ADAPTIVE REUSE</small><h1><span>974</span> HOTEL</h1><p>Compact courtyard hotel · physically reconfigurable event rooms</p></div>
+<div class="viewcontrols" id="viewcontrols"><button class="pill selected" data-camera="aerial">Aerial</button><button class="pill" data-camera="pool">Poolside</button><button class="pill" data-camera="events">Events</button><button class="pill" data-camera="waterfront">Waterfront</button><button class="pill" data-camera="top">Site plan</button></div>
+<div class="legend"><b>Real 3D geometry · fully interactive</b> &nbsp; Rotate: drag &nbsp; Zoom: scroll / pinch<br><span class="hint">Compact courtyard • columns and bracing • inside-the-containers events conversion</span></div>
+<div id="loader">Building your 974 Hotel scene…</div><div id="tooltip"></div></main>
+<aside class="sidebar"><div class="eyebrow">GROUP 08 · DESIGN REVISION 04</div><h2>A compact hotel. A flexible hall.</h2><p>Revised from your references: closer hotel wings, visibly supported offset suites, and one modular event building whose internal rooms actually change between celebration, conference and expanded-hall layouts.</p>
+<h3>01 — Reconfigure the actual container rooms</h3><div class="group"><button class="mode active" data-mode="party"><strong>✦ Celebration & party</strong><span>Side walls retract; connected containers become an indoor party hall with a stage, dance floor and bar.</span></button><button class="mode" data-mode="meeting"><strong>▦ Conference & meeting</strong><span>Partitions close to make individual enclosed meeting rooms INSIDE the same containers.</span></button><button class="mode" data-mode="expanded"><strong>▣ Expanded multi-use hall</strong><span>Partitions retract; modules dock to extend one indoor hall with theater-style seating.</span></button></div>
+<h3>02 — Dock expansion bays to the building</h3><div class="stepper"><button id="minus" title="Remove a modular unit">−</button><output id="unitCount">1</output><button id="plus" title="Add a modular unit">+</button><label>Optional plug-in modules<br><span style="font-size:10px;color:#a7b3bd">0–3 connected bays</span></label></div>
+<div class="floorplan"><small>LIVE BAY CONFIGURATION / TOP VIEW</small><svg id="floorplan" viewBox="0 0 218 111" role="img" aria-label="Diagram of connected containers and adjustable internal partitions"></svg><p class="explain">Steel container frames remain. Interior walls and added bays change with each mode.</p></div><div class="status"><div class="eyebrow">LIVE CONFIGURATION</div><div class="count" id="modeTitle">Indoor celebration hall</div><p id="modeDesc">Six connected container bays form an indoor event hall; folded partitions make space for the stage, dance floor and bar.</p></div>
+<h3>03 — Inspect the architecture</h3><button class="outlinebtn" id="cutawaybtn" aria-pressed="false">◫ Reveal indoor event rooms</button><button class="outlinebtn" id="lightbtn">☀ Switch to daylight</button><button class="outlinebtn" id="exportbtn">⬇ Export this 3D layout as OBJ</button><button class="outlinebtn" id="resetbtn">↺ Reset camera & event layout</button>
+<h3>Design features</h3><p>A denser courtyard plan connects ground-level container suites, restrained supported offsets, a steel skybridge and shaded decks. In the event wing, the roofs can be hidden to reveal the actual reconfigured interior walls, furnishings, stages, conference rooms and connected expansion bays.</p>
+<div class="note">Preliminary architectural visualization, not a construction-ready BIM model. Exact container availability, site boundaries, supports, fire access, cooling, waterproofing and structural feasibility require verification. All dimensions and arrangement details are conceptual.</div></aside></div>
+<script>
+'use strict';
+const canvas=document.getElementById('gl'), sky=document.getElementById('sky');
+let gl=canvas.getContext('webgl2',{antialias:true,alpha:true,premultipliedAlpha:false,preserveDrawingBuffer:true});
+const hasWebGL=!!gl; let cpuContext=null;
+if(!hasWebGL){cpuContext=canvas.getContext('2d',{alpha:true});gl=new Proxy({}, {get:(target,k)=>{if(k==='getShaderParameter'||k==='getProgramParameter')return ()=>true;if(k==='getAttribLocation')return ()=>0;if(k.startsWith('create'))return ()=>({});if(k==='getShaderInfoLog'||k==='getProgramInfoLog')return ()=>'';return ()=>{};}});}
+const $=id=>document.getElementById(id);
+if(!hasWebGL){console.info('GPU unavailable; using simplified software-rendered 3D fallback');}
+// Standalone WebGL viewer. Every part of the hotel is modeled with real triangles; no image card is masquerading as 3D.
+const VS=`#version 300 es
+precision highp float;
+in vec3 aPos; in vec3 aNormal; in vec4 aColor;
+uniform mat4 uViewProj; uniform vec3 uCamera;
+out vec3 vNormal;out vec4 vColor;out float vDist;out vec3 vPosition;
+void main(){vNormal=aNormal;vColor=aColor;vPosition=aPos;vDist=length(aPos-uCamera);gl_Position=uViewProj*vec4(aPos,1.0);}`;
+const FS=`#version 300 es
+precision highp float;
+in vec3 vNormal; in vec4 vColor;in float vDist;in vec3 vPosition;
+uniform float uNight;uniform float uAlpha;uniform vec3 uFog;
+out vec4 outColor;
+void main(){vec3 n=normalize(vNormal);vec3 l=normalize(vec3(-0.35,0.81,-0.52));
+float d=max(dot(n,l),0.0);float a=mix(0.74,0.39,uNight);float glow=vColor.a;
+vec3 base=vColor.rgb*(a+(0.29+0.12*(1.0-uNight))*d);
+vec3 warm=vec3(1.0,0.67,0.35)*glow*(0.63+0.48*uNight);
+vec3 c=base+warm;
+float f=clamp((vDist-140.0)/390.0,0.0,0.66);c=mix(c,uFog,f);
+outColor=vec4(c,uAlpha);
+}`;
+function shader(type,src){let s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
+const prog=gl.createProgram();gl.attachShader(prog,shader(gl.VERTEX_SHADER,VS));gl.attachShader(prog,shader(gl.FRAGMENT_SHADER,FS));gl.linkProgram(prog);if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(prog));gl.useProgram(prog);
+const loc={pos:gl.getAttribLocation(prog,'aPos'),normal:gl.getAttribLocation(prog,'aNormal'),color:gl.getAttribLocation(prog,'aColor'),vp:gl.getUniformLocation(prog,'uViewProj'),camera:gl.getUniformLocation(prog,'uCamera'),night:gl.getUniformLocation(prog,'uNight'),fog:gl.getUniformLocation(prog,'uFog'),alpha:gl.getUniformLocation(prog,'uAlpha')};
+gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+let geom={opaque:[],glass:[],terrain:[]},drawables={};let eventMode='party',extras=1,night=1,cutaway=false;let exported=[];let builds=0;
+const P={sand:'#b9a18c',sandLight:'#e1cbb0',stone:'#a8a49a',pave:'#c9bca9',dark:'#222d38',frame:'#293038',steel:'#40505a',cream:'#ddd7c8',ivory:'#f7e3c6',rust:'#a74d3a',red:'#b65e40',ochre:'#d3a641',blue:'#377b87',turquoise:'#57b9bd',navy:'#3a4858',glass:'#9fc0bd',pool:'#42bdd3',water:'#427587',green:'#335c47',olive:'#658061',leaf:'#608865',wood:'#9c7754',solar:'#243d5c',light:'#ffe4a9'};
+function rgb(c){if(Array.isArray(c))return c;let v=(c||'#ffffff').replace('#','');return [0,2,4].map(i=>parseInt(v.slice(i,i+2),16)/255);}
+let group='Scene';let modeIndex=0;
+function tri(a,b,c,col,em=0,alpha=1){let u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],v=[c[0]-a[0],c[1]-a[1],c[2]-a[2]];let n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];let len=Math.hypot(...n)||1;n=n.map(q=>q/len);let co=rgb(col),dest=alpha<1?geom.glass:(group==='Site base'?geom.terrain:geom.opaque);for(const p of [a,b,c])dest.push(...p,...n,...co,em);if(alpha===1&&group!=='Landscape')exported.push([a,b,c]);}
+function quad(a,b,c,d,color,em=0,alpha=1){tri(a,b,c,color,em,alpha);tri(a,c,d,color,em,alpha);}
+function box(x,y,z,w,h,d,col,rot=0,em=0,alpha=1){if(w<=0||h<=0||d<=0)return;let cs=Math.cos(rot),ss=Math.sin(rot);const tf=(a,b,c)=>[x+a*cs+c*ss,y+b,z-a*ss+c*cs];let A=tf(-w/2,-h/2,-d/2),B=tf(w/2,-h/2,-d/2),C=tf(w/2,h/2,-d/2),D=tf(-w/2,h/2,-d/2),E=tf(-w/2,-h/2,d/2),F=tf(w/2,-h/2,d/2),G=tf(w/2,h/2,d/2),H=tf(-w/2,h/2,d/2);
+quad(A,D,C,B,col,em,alpha);quad(E,F,G,H,col,em,alpha);quad(A,E,H,D,col,em,alpha);quad(B,C,G,F,col,em,alpha);quad(D,H,G,C,col,em,alpha);quad(A,B,F,E,col,em,alpha);
+}
+function plate(x,y,z,w,d,col,rot=0,em=0,alpha=1){box(x,y,z,w,.12,d,col,rot,em,alpha)}
+function beam(a,b,thick,color,em=0){let v=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],l=Math.hypot(...v);if(l<.02)return;let vy=v.map(q=>q/l);let up=Math.abs(vy[1])>.92?[1,0,0]:[0,1,0];let vx=[vy[1]*up[2]-vy[2]*up[1],vy[2]*up[0]-vy[0]*up[2],vy[0]*up[1]-vy[1]*up[0]];let xx=Math.hypot(...vx);vx=vx.map(t=>t/xx);let vz=[vx[1]*vy[2]-vx[2]*vy[1],vx[2]*vy[0]-vx[0]*vy[2],vx[0]*vy[1]-vx[1]*vy[0]];let r=thick/2;function pt(center,dx,dz){return center.map((u,i)=>u+vx[i]*dx+vz[i]*dz)}
+let a0=pt(a,-r,-r),a1=pt(a,r,-r),a2=pt(a,r,r),a3=pt(a,-r,r),b0=pt(b,-r,-r),b1=pt(b,r,-r),b2=pt(b,r,r),b3=pt(b,-r,r);
+quad(a0,a1,b1,b0,color,em);quad(a1,a2,b2,b1,color,em);quad(a2,a3,b3,b2,color,em);quad(a3,a0,b0,b3,color,em);quad(b0,b1,b2,b3,color,em);quad(a3,a2,a1,a0,color,em);
+}
+function cylinder(x,y,z,r,h,c,sides=7){let prev=null;for(let i=0;i<sides;i++){let a=i*2*Math.PI/sides,b=(i+1)*2*Math.PI/sides;let p=[x+r*Math.cos(a),y,z+r*Math.sin(a)],q=[x+r*Math.cos(b),y,z+r*Math.sin(b)],pt=[p[0],y+h,p[2]],qt=[q[0],y+h,q[2]];quad(p,pt,qt,q,c);tri([x,y+h,z],qt,pt,c);}}
+function sphere(x,y,z,r,c){let rings=4,steps=8;for(let j=0;j<rings;j++){let lat0=-Math.PI/2+j*Math.PI/rings,lat1=-Math.PI/2+(j+1)*Math.PI/rings;for(let i=0;i<steps;i++){let a=i*2*Math.PI/steps,b=(i+1)*2*Math.PI/steps;const pt=(lat,t)=>[x+r*Math.cos(lat)*Math.cos(t),y+r*Math.sin(lat),z+r*Math.cos(lat)*Math.sin(t)];quad(pt(lat0,a),pt(lat0,b),pt(lat1,b),pt(lat1,a),c);}}}
+function txtPlate(x,y,z,w,h,col,em=0){box(x,y,z,w,h,.08,col,0,em)}
+function local(cx,y0,cz,r,xx,yy,zz){return[cx+xx*Math.cos(r)+zz*Math.sin(r),y0+yy,cz-xx*Math.sin(r)+zz*Math.cos(r)];}
+function relBox(cx,y0,cz,r,px,py,pz,w,h,d,c,em=0,alpha=1,rr=0){let p=local(cx,y0,cz,r,px,py,pz);box(...p,w,h,d,c,r+rr,em,alpha)}
+function windowPanel(cx,y0,cz,r,px,py,pz,w,h,face='front'){relBox(cx,y0,cz,r,px,py,pz,w,h,.055,P.glass,0.05,.59);let rdark=P.frame;relBox(cx,y0,cz,r,px,py+h/2,pz,w+.16,.10,.12,rdark);relBox(cx,y0,cz,r,px,py-h/2,pz,w+.16,.12,.12,rdark);relBox(cx,y0,cz,r,px+w/2,py,pz,.11,h+.08,.12,rdark);relBox(cx,y0,cz,r,px-w/2,py,pz,.11,h+.08,.12,rdark);}
+function corridorBridge(x1,z1,x2,z2,alt){group='Bridge connections';let L=Math.hypot(x2-x1,z2-z1),angle=Math.atan2(-(z2-z1),x2-x1);let cx=(x1+x2)/2,cz=(z1+z2)/2;box(cx,alt,cz,L,.28,2.9,'#4d5356',angle);box(cx,alt+2.35,cz,L,.28,2.9,P.steel,angle);for(let s of [-1,1]){for(let i=0;i<8;i++){let u=-L/2+L*i/8,uu=-L/2+L*(i+1)/8;beam(local(cx,alt,cz,angle,u,.2,s*1.35),local(cx,alt,cz,angle,uu,2.24,s*1.35),.16,P.frame);}}for(let i=0;i<=8;i++){let u=-L/2+L*i/8;for(let s of [-1,1]){let a=local(cx,alt,cz,angle,u,0,s*1.38),b=local(cx,alt,cz,angle,u,2.4,s*1.38);beam(a,b,.12,P.steel);}}}
+function moduleHotel(x,z,y,rot,color,kind='studio',roof='flat',tag='Hotel accommodation'){
+group=tag;let L=12.2,W=4.1,H=3.05;
+relBox(x,y,z,rot,0,.16,0,L,.33,W,P.steel);relBox(x,y,z,rot,0,H+.08,0,L,.26,W,color);relBox(x,y,z,rot,-L/2+.11,H/2,0,.22,H,W,color);relBox(x,y,z,rot,L/2-.11,H/2,0,.22,H,W,color);
+relBox(x,y,z,rot,0,H/2,W/2-.07,L-.1,H,.14,color); // rear solid wall
+// front composed of two solid side sections and glass-filled opening
+relBox(x,y,z,rot,-L/2+1.05,H/2,-W/2+.09,2.08,H,.18,color);relBox(x,y,z,rot,L/2-1.05,H/2,-W/2+.09,2.08,H,.18,color);
+let pw=(L-4.3)/3;for(let k=0;k<3;k++)windowPanel(x,y,z,rot,-(L-4.25)/2+pw*(k+.5),H/2,-W/2-.016,pw-.075,H-.44);
+// corner posts and shipping container ribs on solid ends; lightweight corrugation
+for(let s of [-1,1])for(let i=0;i<7;i++){let pz=-W/2+.28+i*(W-.56)/6;relBox(x,y,z,rot,s*(L/2+.014),H/2,pz,.052,H-.36,.042,P.frame);}
+for(let i=0;i<20;i++){let px=-L/2+.32+i*(L-.64)/19;relBox(x,y,z,rot,px,H/2,W/2+.03,.05,H-.39,.055, P.frame);}
+// warm interior, visible furniture behind glass
+relBox(x,y,z,rot,0,.20,0,L-.4,.10,W-.3,P.wood,0.02);if(kind==='studio'||kind==='suite'){
+relBox(x,y,z,rot,-2.4,.63,.45,3.2,.37,1.95,'#c4ae96');relBox(x,y,z,rot,-2.4,.94,.45,3.07,.25,1.87,P.ivory);
+relBox(x,y,z,rot,-3.5,1.09,-.08,.70,.18,.44,'#f6e8d7');relBox(x,y,z,rot,-2.0,1.09,-.08,.70,.18,.44,'#f6e8d7');
+relBox(x,y,z,rot,2.4,.52,.62,2.4,.40,1.10,'#7c6861');relBox(x,y,z,rot,3.5,.53,-.24,.85,.62,.83,'#b8a17f');relBox(x,y,z,rot,1.25,.52,-.3,.9,.38,.7,P.wood);
+}else{relBox(x,y,z,rot,-2.1,.6,0,3.9,.44,1.7,P.cream);relBox(x,y,z,rot,2.6,.6,.22,2.5,.44,1.5,P.wood);}
+for(const px of [-4.85,4.85])relBox(x,y,z,rot,px,H-.36,0,.22,.16,.22,P.light,.65);
+for(const px of [-5.7,5.7])for(const pz of [-1.65,1.65])relBox(x,y,z,rot,px,H/2,pz,.11,H,.10,P.dark);
+if(roof==='solar'){for(let i=0;i<3;i++)for(let j=0;j<2;j++)relBox(x,y,z,rot,-3.55+i*3.55,H+.29,-.95+j*1.75,3.1,.08,1.52,P.solar);}
+if(roof==='terrace'){
+for(const zz of [-W/2+.2,W/2-.2])relBox(x,y,z,rot,0,H+.64,zz,L,.05,.05,P.steel);for(let j=0;j<6;j++)for(let zz of [-W/2+.2,W/2-.2])relBox(x,y,z,rot,-L/2+.28+j*(L-.56)/5,H+.35,zz,.055,.72,.06,P.steel);
+for(let i=0;i<3;i++){let px=-3.5+i*3.5;relBox(x,y,z,rot,px,H+.24,1.18,1.6,.30,.78,P.wood);}
+}
+// shade balcony and glass guard on lower modules
+if(y>0.2){
+ relBox(x,y,z,rot,0,.07,-W/2-1.05,L-.5,.21,1.8,P.wood);
+ relBox(x,y,z,rot,0,1.1,-W/2-1.95,L-.5,.062,.09,P.glass,.01,.38);
+ for(let q of [-4.9,0,4.9])relBox(x,y,z,rot,q,.64,-W/2-1.95,.065,1.05,.08,P.steel);
+ // Every offset module stands on visible posts or steel transfer frames; none are unsupported.
+ group='Visible structural supports';
+ for(let ix of [-L/2+.48,L/2-.48])for(let iz of [-W/2+.29,W/2-.29]){
+  let p=local(x,0,z,rot,ix,0,iz);
+  box(p[0],y/2,p[2],.25,y,.25,P.steel);
+  box(p[0],.19,p[2],.69,.30,.69,'#7e796e');
+ }
+ for(let ix of [-L/2+1.0,L/2-1.0]){
+  let p=local(x,0,z,rot,ix,0,-W/2-.65),q=local(x,0,z,rot,ix,y+.12,-W/2-1.47);
+  beam(p,q,.16,P.steel);
+ }
+ group=tag;
+}
+}
+function hotel(){
+// Dense U-shaped guest wings gathered tightly around the central pool and landscaped court.
+// No high floating units: all raised containers receive steel columns via moduleHotel().
+const M=(x,z,y,r,c,kind='studio',roof='flat',tag='Hotel accommodation')=>moduleHotel(x,z,y,r,c,kind,roof,tag);
+// West wing: three linked bays at ground and matching supported offset rooms above.
+for(let [z,c] of [[19,P.rust],[6.65,P.cream],[-5.7,P.blue]])M(-41,z,0,Math.PI/2,c,'suite','flat');
+M(-42.0,18.5,3.43,Math.PI/2,P.ochre,'suite','terrace');
+M(-40.0,5.85,3.43,Math.PI/2,P.navy,'suite','flat');
+M(-41.9,-6.45,3.43,Math.PI/2,P.rust,'suite','terrace');
+// Back / sea-facing wing: slight shifts on top, no gaps larger than a balcony courtyard.
+for(let [x,c] of [[-29,P.cream],[-16.7,P.ochre],[-4.4,P.navy],[7.9,P.rust]])M(x,23.4,0,0,c,'suite','flat');
+for(let [x,z,c] of [[-29.3,24.0,P.rust],[-15.9,23.0,P.blue],[-3.5,24.2,P.cream],[8.1,23.8,P.ochre]])M(x,z,3.43,0,c,'suite',x===-3.5?'solar':'terrace');
+// Pool-facing east/right wing turns the composition into a U-shaped footprint.
+for(let [z,c] of [[18.5,P.blue],[6.1,P.cream],[-6.25,P.ochre]])M(19,z,0,Math.PI/2,c,'suite','flat');
+M(19.6,18.5,3.43,Math.PI/2,P.cream,'suite','terrace');
+M(18.0,6.15,3.43,Math.PI/2,P.rust,'suite','solar');
+M(19.0,-6.25,3.43,Math.PI/2,P.navy,'suite','terrace');
+// Entrance / lower-left rooms frame a smaller second landscaped court.
+for(let [x,z,c] of [[-30,-18,P.ochre],[-17.6,-18,P.blue],[-5.2,-18,P.cream],[7.1,-18,P.rust]])M(x,z,0,0,c,'suite','terrace',x>-12?'Reception and dining':'Hotel accommodation');
+M(-17.1,-18.2,3.43,0,P.cream,'suite','terrace');
+M(-4.2,-18.8,3.43,0,P.navy,'suite','terrace','Reception and dining');
+// Public lounge / restaurant extensions occupy the ground, tying circulation to the event wing.
+M(9.2,-30,0,0,P.rust,'suite','flat','Reception and dining');
+M(21.5,-30,0,0,P.ochre,'suite','solar','Reception and dining');
+// Two very short, visibly supported bridge links over courtyard passages.
+corridorBridge(-35.1,23.6,-34.8,18.8,3.58);
+corridorBridge(12.6,23.6,14.9,19.6,3.58);
+for(let [x,z] of [[-35,21],[13.8,21.1]]){
+ for(let d of [-1.15,1.15])box(x+d,1.79,z,.20,3.58,.20,P.steel);
+}
+// Continuous steel-backed shaded boardwalk directly under guest-facing rooms.
+group='Shared supported circulation';
+box(-10.6,0.15,16.25,57,.34,2.25,P.wood);
+for(let x=-39;x<20;x+=4.2)box(x,1.45,16.2,.18,2.9,.18,P.steel);
+for(let x=-39;x<20;x+=2)box(x,3.03,16.25,.24,.12,2.5,P.wood);
+}
+function ground(){
+ group='Site base';
+ // The previous plot was oversized. This new footprint is compact and almost fully occupied.
+ box(-1,-.74,0,135,1.28,81,P.sand);
+ plate(-1,-.07,0,133,78,P.pave);
+ // Waterfront at back, with a continuous pedestrian promenade.
+ box(-1,-1.7,78,146,.16,78,'#467587');
+ for(let i=0;i<57;i++)box(-66+i*2.35,-.38,40.9,2.15,.55,2.4,i%2?'#827d76':'#8b8880');
+ box(-1,.03,36.5,129,.16,4.9,'#b8ac9c');
+ for(let x=-64;x<65;x+=3.1){box(x,.71,38.1,.13,1.30,.13,P.steel);}
+ box(-1,1.28,38.1,130,.08,.09,P.steel);
+ // Single connected forecourt; no enormous empty plaza.
+ box(-3,-.001,-30,116,.08,15,'#b4a796');
+ for(let x=-58;x<62;x+=4)box(x,.045,-33.2,.06,.017,14,'#c6b8a5');
+ // Central low-profile pool, paving and illuminated coping.
+ box(-10.4,.20,2,31,.46,19.1,P.stone);
+ box(-10.4,.54,2,28.5,.12,16.4,P.ivory);
+ plate(-10.4,.65,2,27.25,15.2,P.pool,0,.17);
+ for(let i=0;i<12;i++)box(-22.7+i*2.3,.69,2,1.55,.03,.07,i%2?'#a8dfdc':'#75d1d5',0,.12);
+ for(let z of [-7.75,11.7])box(-10.4,.52,z,31,.12,.16,P.light,0,.42);
+ // Planter islands around courtyard and along sea walk.
+ for(let [x,z,w,d] of [[-27,-1,2,15],[5.9,1,2.1,15],[-26.7,16.1,37,1.1],[-9.1,-10,29,1.2],[-55,-29,8,2],[-50,31,8,2],[-7,31,18,1.5],[47,29,12,2]]){
+  box(x,.22,z,w,.43,d,'#8e806e');box(x,.48,z,Math.max(.6,w-.18),.12,Math.max(.6,d-.18),'#3c6649');
+ }
+ // Event facility floor pad meets the rest of the resort with continuous paving.
+ box(43,.08,-21.8,41,.23,25,'#bcb3a8');
+ // Pocket green court opposite hotel and restaurant.
+ box(-43,.055,-25,17,.10,9,'#b7ae9f');
+}
+function lounge(x,z,y=0,rot=0){group='Outdoor amenities';relBox(x,y,z,rot,0,.24,0,1.96,.28,.82,'#b99d7d');relBox(x,y,z,rot,0,.42,.22,1.94,.24,.33,P.cream);relBox(x,y,z,rot,0,.51,-.18,1.94,.16,.73,P.cream);relBox(x,y,z,rot,.6,.64,-.18,.55,.10,.7,P.ivory);relBox(x,y,z,rot,-.6,.64,-.18,.55,.10,.7,P.ivory);}
+function table(x,z,y=0){group='Outdoor amenities';cylinder(x,y+.45,z,.07,.50,P.steel);cylinder(x,y+.64,z,.5,.10,P.wood,10);}
+function cabana(x,z){group='Pool & leisure';for(let sx of [-1,1])for(let sz of [-1,1])box(x+sx*2,1.4,z+sz*1.65,.12,2.75,.12,P.steel);box(x,2.84,z,4.4,.16,3.75,P.cream);for(let i=-1;i<=1;i++)lounge(x+i*1.15,z+.5,0,Math.PI/2);for(let i=-1;i<=1;i++)box(x+i*1.35,1.75,z+1.68,.06,2.0,.07,'#efe8d9',0,.01,.46);}
+function pergola(x,z,w,d,h=3.3){group='Outdoor amenities';for(let sx of [-1,1])for(let sz of [-1,1])box(x+sx*w/2,h/2,z+sz*d/2,.17,h,.17,P.frame);for(let i=0;i<Math.round(w/1.05);i++){box(x-w/2+i*(w/Math.round(w/1.05)),h,z,d*.011,.15,d,P.wood);}}
+function solarRack(x,y,z,rot=0){group='Solar roof structures';for(let i=0;i<5;i++)for(let j=0;j<2;j++)relBox(x,y,z,rot,-4.6+i*2.22,0,-1.1+j*1.62,2.03,.09,1.45,P.solar);}
+function palm(x,z,h=8){group='Landscape';cylinder(x,.05,z,.25,h*.85,P.wood,7);const cols=['#3d7350','#4b8553','#618c51','#356c52'];for(let k=0;k<10;k++){let a=2*Math.PI*k/10,ex=x+Math.cos(a)*(2.7+h*.13),ez=z+Math.sin(a)*(2.7+h*.13);let p=[x,h*.86,z],q=[x+.7*Math.cos(a),h+.98,z+.7*Math.sin(a)],t=[ex,h*.60+(k%3)*.1,ez];beam(p,q,.15,cols[k%4]);tri(p,[q[0]+Math.sin(a)*.38,q[1],q[2]-Math.cos(a)*.38],t,cols[k%4]);tri(p,t,[q[0]-Math.sin(a)*.38,q[1],q[2]+Math.cos(a)*.38],cols[k%4]);}}
+function bush(x,z,r=.8,flower=false){group='Landscape';sphere(x,.4,z,r,flower?'#944c67':'#477754');sphere(x+.42*r,.45,z-.4*r,r*.65,flower?'#c57683':'#4d8556');}
+function plantings(){
+ for(let a of [[-59,29,7.3],[-55,-16,7],[-50,-33,6.8],[-35,33,7.5],[-8,34,7.1],[16,34,8.1],[27,29,7],[28,3,6.7],[61,27,7.1],[63,-35,7],[-60,-33,6.4],[-51,0,6.1]])palm(...a);
+ const points=[[ -54,21],[-52,16],[-51,10],[-53,-9],[-52,-12],[-35,-29],[-30,-30],[-26,-29],[-23,-29],[-13,-30],[-8,-30],[-2,-29],[4,-29],[27,1],[24,6],[26,12],[26,22],[8,15],[-28,10],[-27,5],[-27,0],[-28,-6],[6,5],[7,0],[7,-5],[48,29],[52,29],[57,29],[59,11],[62,7],[-56,32],[-29,32],[6,32]];
+ for(let i=0;i<points.length;i++){let [x,z]=points[i];bush(x,z,.43+(i%3)*.08,i%7===0);}
+ for(let x=-25;x<4;x+=1.5){bush(x,-8.8,.36,x%4===0);bush(x,12.3,.34,x%5===0);}
+}
+function leisure(){
+ for(let i=0;i<5;i++)for(let side of [-1,1]){
+  let x=-21+i*5.3, z=side===-1?-11.3:14.1;
+  lounge(x,z,0,side===-1?0:Math.PI);table(x+1.45,z,0);
+ }
+ cabana(-29,4);cabana(8,4);
+ pergola(-52,-19,8,7,3.05);pergola(7,-35.0,18,6,3.15);
+ pergola(30,5,7.5,8,3.1);
+ // Rooftop shade and seating atop supported container roofs.
+ for(let [x,z,y] of [[-42,18,6.77],[-29,24.0,6.77],[8.2,23.7,6.77],[-17,-18,6.77]]){
+  lounge(x,z,y,Math.PI/2);table(x+2,z,y);
+ }
+}
+function shade(x,z,w,d,y=4){group='Shade sails';let A=[x-w/2,y,z-d/2],B=[x+w/2,y+.38,z-d/2],C=[x+w/2,y-.35,z+d/2],D=[x-w/2,y+.35,z+d/2];quad(D,C,B,A,'#f4e9d7');for(const v of [A,B,C,D])beam([v[0],0,v[2]],v,.12,P.steel);}
+function flowerBox(x,z,w,d){group='Landscape';box(x,.2,z,w,.43,d,'#81796b');box(x,.47,z,w-.2,.12,d-.2,'#4a6c4e');}
+function eventShell(cx,cz,roof=true,facade='glass'){
+ // One real shipping container shell: floor, four structural corner castings, exposed ribs,
+ // removable non-load-bearing side walls. The shell stays while its infill changes by mode.
+ group='Reconfigurable event container shells';let W=4.28,L=12.15,H=3.45,r=0;
+ box(cx,.18,cz,L,.30,W,P.steel);
+ box(cx,.36,cz,L-.32,.12,W-.24,'#8c725f');
+ for(let sx of [-1,1])for(let sz of [-1,1]){
+  box(cx+sx*(L/2-.12),H/2,cz+sz*(W/2-.11),.24,H,.24,P.dark);
+  box(cx+sx*(L/2-.12),.17,cz+sz*(W/2-.11),.68,.22,.68,'#857d74');
+ }
+ for(let z of [-W/2,W/2])for(let y of [.22,H-.20])box(cx,y,cz+z,L,.16,.20,P.frame);
+ for(let x of [-L/2,L/2])for(let y of [.22,H-.20])box(cx+x,y,cz,.20,.18,W,P.frame);
+ // corrugation on the short end walls, fully fixed (not floating).
+ for(let k=0;k<12;k++)for(let x of [-L/2,L/2])box(cx+x,1.72,cz-W/2+.27+k*.33,.055,2.88,.028,'#59616a');
+ if(roof && !cutaway){
+  box(cx,H+.07,cz,L+.18,.18,W+.15,'#d3c9b8');
+  for(let t=-5.5;t<6;t+=.64)box(cx+t,H+.17,cz,.07,.055,W,P.frame);
+ } else {
+  for(let x of [-L/2,L/2])for(let z of [-W/2,W/2])box(cx+x,H+.1,cz+z,.36,.30,.36,P.steel);
+ }
+ // Warm overhead lighting remains visible in cutaway.
+ for(let x of [-3.5,0,3.5]){
+  box(cx+x,H-.44,cz,1.9,.11,.24,P.light,0,.65);
+ }
+}
+function eventGlassWall(x,z,w=12.0,closed=true){
+ group='Reconfigurable event partitions';
+ // Clear panels on sliding tracks. In party/expanded mode the wall stacks in end pockets.
+ box(x,3.12,z,w,.12,.13,P.steel);
+ box(x,.34,z,w,.11,.13,P.steel);
+ let segment=closed?w/4:1.2;
+ for(let i=0;i<(closed?4:2);i++){
+  let px=closed?x-w/2+segment*(i+.5):x+w/2-.6-(i*.72);
+  box(px,1.75,z,segment-.12,2.72,.085,P.glass,0,.07,.45);
+  box(px-segment/2+.04,1.75,z,.095,2.8,.14,P.dark);
+ }
+}
+function eventSolidWall(x,z,w=12.1){
+ group='Reconfigurable event partitions';
+ box(x,1.77,z,w,2.9,.16,'#e5d6c5');
+ for(let i=0;i<12;i++)box(x-w/2+.4+i*.96,1.77,z+.09,.045,2.65,.035,'#b4a28b');
+}
+function eventCenterStage(x,z){
+ group='Inside: party stage';
+ box(x,.56,z,6.4,.66,2.6,P.dark);
+ box(x,1.92,z+1.36,6.1,2.0,.13,'#543f73',0,.67);
+ for(let i=-2;i<=2;i++)box(x+i*1.0,3.07,z,.40,.20,.28,i%2?'#e176b1':'#75b1df',0,.95);
+ for(let i of [-2.5,2.5])beam([x+i,.9,z],[x+i,3.28,z],.12,P.steel);
+}
+function eventDancefloor(x,z){
+ group='Inside: dance floor';
+ for(let i=0;i<7;i++)for(let j=0;j<5;j++){
+  box(x+(i-3)*.84,.43,z+(j-2)*.82,.82,.08,.80,(i+j)%2?'#b38c92':'#625669',0,.19);
+ }
+}
+function eventPartyFurniture(){
+ eventCenterStage(29,-18.35);
+ eventDancefloor(38,-23);
+ group='Inside: party lounge';
+ for(let [x,z] of [[28,-27.3],[34,-27.3],[43,-27.3],[47.3,-23],[46,-18.45]]){
+  cylinder(x,.40,z,.13,.75,P.steel,8);
+  cylinder(x,1.14,z,.62,.08,P.wood,12);
+  for(let s of [-1,1])box(x+s*1.02,.55,z,.55,.7,.57,P.ivory);
+ }
+ // bar is within the back-right container, not in an outdoor plaza.
+ box(43.7,.80,-18.4,4.2,.85,.75,'#8a604a');
+ box(43.7,1.28,-18.4,4.4,.18,.92,P.ivory);
+ for(let k=0;k<4;k++)cylinder(42.0+k*1.12,.15,-19.65,.27,.49,P.navy,8);
+}
+function eventMeetingFurniture(){
+ group='Inside: conference rooms';
+ for(let zz of [-27.2,-22.92,-18.64]){
+  for(let xx of [31.7,43.7]){
+   box(xx,.82,zz,4.2,.22,1.3,P.wood);
+   for(let s of [-1,1])for(let j=-1;j<=1;j++){
+    box(xx+j*1.33,.50,zz+s*.99,.72,.65,.63,P.navy);
+   }
+   box(xx-4.7,1.65,zz+.3,.12,1.5,1.85,'#3d5661',0,.05,.82);
+   box(xx-4.6,1.65,zz+.33,.16,.70,1.25,'#77babb',0,.30);
+  }
+ }
+}
+function eventHallFurniture(){
+ group='Inside: expanded exhibition hall';
+ // Rows are physically located within the joined container volume.
+ let start=26.9,last=extras?55.3:46.9;
+ for(let x=start;x<last;x+=2.3)for(let z of [-27.1,-25.3,-23.5,-21.7,-19.9]){
+  box(x,.58,z,.95,.72,.65,P.navy);
+  box(x,.98,z+.22,.94,.20,.16,P.cream);
+ }
+ // Reception / presentation stage at eastern end of assembled hall.
+ box(Math.min(47.1,45+extras*1.3),.54,-18.7,5.2,.59,2.3,P.dark);
+ box(47.2,1.83,-17.5,.16,1.9,4,'#608a9c',0,.20);
+}
+function hallEntrance(){
+ // Front wall of events rooms is interactive sliding glazing; all parties take place inside.
+ let rows=[-27.2,-22.92,-18.64];
+ for(let z of rows){
+  // fixed west end and interior partitions are retained in conference mode only
+  group='Events exterior';
+  box(25.85,1.75,z,.18,2.95,3.95,P.rust);
+  for(let x of [32,44.4]){
+   if(eventMode==='meeting')eventGlassWall(x,z-2.02,12.0,true);
+   else eventGlassWall(x,z-2.02,12.0,false);
+  }
+ }
+}
+function events(){
+ // Integrated north-south bay system. Six permanently installed 12 m shells
+ // join side-to-side. Expansion adds 0–3 bays onto their EAST ends, flush to the core.
+ const rows=[-27.2,-22.92,-18.64],columns=[32,44.4];
+ for(let z of rows){for(let x of columns)eventShell(x,z,true);}
+ for(let i=0;i<3;i++){
+  let z=rows[i];group='Expansion docking infrastructure';
+  box(56.8,.035,z,12.45,.13,4.28,extras>i?'#aa9d8a':'#a79a89');
+  for(let x of [51.0,62.5])for(let dz of [-1.65,1.65])box(x,.10,z+dz,.49,.21,.49,P.steel);
+  if(i<extras)eventShell(56.8,z,true);
+  else{
+   // Rail flush to hall: unoccupied docking position for another genuine container bay.
+   for(let dz of [-1.65,1.65])box(56.8,.25,z+dz,12.1,.13,.15,'#817c79');
+  }
+ }
+ // Steel headers connect the modules; openings change with use.
+ for(let x of [32,44.4])for(let z of [-25.06,-20.78]){
+  group='Convertible side opening headers';
+  box(x,3.20,z,12.15,.24,.21,P.steel);
+  if(eventMode==='meeting')eventGlassWall(x,z,12.05,true);
+  else{
+   // folded side panels stored at the end of the container: room is open inside
+   for(let j=0;j<3;j++)box(x+5.38-j*.20,1.65,z+.10+j*.12,.16,2.75,.16,P.rust);
+  }
+ }
+ // Party: shared interior with retractable walls, stage and dance floor.
+ // Conference: meeting pods separated by glazed partitions, six actual rooms.
+ // Expanded: large room with theater seating, plug-in bays enlarge floor area.
+ if(eventMode==='party')eventPartyFurniture();
+ else if(eventMode==='meeting')eventMeetingFurniture();
+ else eventHallFurniture();
+ // Mode-dependent enclosure uses the container walls, not an outdoor stage.
+ group='Event insulated building envelope';
+ for(let x of [32,44.4]){
+  // Rear-side insulated corrugated envelope and sheltered glass frontage.
+  box(x,1.64,-16.45,12.02,2.68,.16,P.rust);
+  for(let i=-5;i<=5;i++)box(x+i*1.02,1.65,-16.34,.07,2.63,.08,P.frame);
+  // Front glazing: party/expanded sides retract at the entry, meeting remains closed.
+  if(eventMode==='meeting'){
+   eventGlassWall(x,-29.37,12.0,true);
+  }else{
+   eventGlassWall(x,-29.37,12.0,false);
+   for(let k=0;k<4;k++)box(x-4.2+k*2.7,3.13,-29.25,.78,.20,.19,P.wood);
+  }
+ }
+ if(eventMode==='meeting'){
+  // Separate the long double-container bays into six fully enclosed meeting rooms.
+  for(let z of [-27.2,-22.92,-18.64]){
+   box(38.24,1.62,z,.09,2.55,3.93,P.glass,0,.10,.55);
+   for(let zz of [z-1.9,z+1.9])box(38.24,1.67,zz,.18,2.85,.11,P.frame);
+  }
+ }
+ // Single perimeter edge across expansion bays; docking keeps modules structurally continuous.
+ for(let i=0;i<extras;i++){
+  let zz=rows[i];
+  box(56.8,1.66,zz-2.12,11.98,2.66,.13,P.glass,0,.04,.4);
+  box(56.8,1.68,zz+2.12,11.98,2.66,.13,P.blue);
+  for(let j=0;j<12;j++)box(51.2+j*1.02,1.66,zz+2.21,.06,2.45,.05,P.frame);
+ }
+ hallEntrance();
+ // The east container-end doors are clearly attached to the core, not separate floating rooms.
+ for(let z of rows){let x=extras>rows.indexOf(z)?62.92:50.55;
+  group='Events exterior';box(x,1.72,z,.22,3.0,3.92,P.ochre);
+  for(let k=-4;k<=4;k++)box(x+.14,1.72,z+k*.40,.045,2.85,.035,P.frame);
+ }
+ // Roof edge / seamless internal spine: two columns of docked containers form a recognizable hall.
+ group='Event exterior canopy';
+ for(let x of [25.9,50.4])for(let z of [-29.4,-16.5])box(x,1.65,z,.16,3.3,.16,P.steel);
+ box(38.15,3.47,-16.43,25,.14,.26,P.wood);
+ for(let x=26;x<51;x+=3)box(x,3.53,-16.43,.1,.18,.30,P.light,0,.42);
+ // Reception vestibule actually attached to north side of event containers.
+ box(36,0.12,-11.7,16,.27,7.3,'#b4a796');
+ for(let x of [31,36,41]){
+  box(x,1.7,-11.9,.13,3.16,.13,P.steel);
+ }
+ box(36,3.30,-11.9,15,.18,4.8,P.cream);
+ for(let x=31;x<42;x+=2)box(x,1.69,-9.55,.075,2.7,.065,P.glass,0,.02,.48);
+ group='Events landscape';
+ for(let [x,z] of [[22,-32],[51,-32],[23,-9],[51,-9]]){
+  box(x,.21,z,4.2,.42,1.0,'#847a6b');box(x,.46,z,3.95,.12,.78,'#436b50');
+  bush(x-1,z,.34);bush(x+1,z,.34,true);
+ }
+}
+function buildScene(){geom={opaque:[],glass:[],terrain:[]};exported=[];group='Scene';ground();hotel();leisure();plantings();events();
+for(const key of ['terrain','opaque','glass']){const arr=new Float32Array(geom[key]);let vao=gl.createVertexArray();let buf=gl.createBuffer();gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,arr,gl.STATIC_DRAW);let step=10*4;gl.enableVertexAttribArray(loc.pos);gl.vertexAttribPointer(loc.pos,3,gl.FLOAT,false,step,0);gl.enableVertexAttribArray(loc.normal);gl.vertexAttribPointer(loc.normal,3,gl.FLOAT,false,step,3*4);gl.enableVertexAttribArray(loc.color);gl.vertexAttribPointer(loc.color,4,gl.FLOAT,false,step,6*4);gl.bindVertexArray(null);if(drawables[key]){gl.deleteBuffer(drawables[key].buf);gl.deleteVertexArray(drawables[key].vao)}drawables[key]={buf,vao,count:arr.length/10};}builds++;window.__974ready=true;}
+function vec3(a,b,c){return [a,b,c]};const vsub=(a,b)=>a.map((n,i)=>n-b[i]),vnorm=a=>{let l=Math.hypot(...a)||1;return a.map(v=>v/l)},cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+function lookAt(eye,center,up){let z=vnorm(vsub(eye,center)),x=vnorm(cross(up,z)),y=cross(z,x);return new Float32Array([x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1]);}
+function perspective(fovy,aspect,n,f){let t=1/Math.tan(fovy/2),v=1/(n-f);return new Float32Array([t/aspect,0,0,0,0,t,0,0,0,0,(f+n)*v,-1,0,0,2*f*n*v,0]);}
+function mul(a,b){let out=new Float32Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++)out[c*4+r]=a[r]*b[c*4]+a[4+r]*b[c*4+1]+a[8+r]*b[c*4+2]+a[12+r]*b[c*4+3];return out;}
+let camera={yaw:3.48,pitch:.43,dist:128,target:[-2,1.8,-1]};let desired={...camera,target:[...camera.target]};const views={aerial:{yaw:3.48,pitch:.43,dist:128,target:[-2,1.8,-1]},pool:{yaw:3.30,pitch:.20,dist:68,target:[-10,1.4,2]},events:{yaw:3.25,pitch:.58,dist:66,target:[40,1.5,-22.5]},waterfront:{yaw:5.43,pitch:.27,dist:125,target:[-3,2.7,4]},top:{yaw:2.42,pitch:1.535,dist:134,target:[-2,0,0]}};
+function viewMode(key){let c=views[key];desired={...c,target:[...c.target]};document.querySelectorAll('[data-camera]').forEach(b=>b.classList.toggle('selected',b.dataset.camera===key));if(key==='events'&&!cutaway){cutaway=true;syncCutaway();buildScene();}}
+function size(){let r=canvas.getBoundingClientRect();let ratio=Math.min(devicePixelRatio||1,2);let w=Math.max(1,Math.floor(r.width*ratio)),h=Math.max(1,Math.floor(r.height*ratio));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;sky.width=w;sky.height=h;}gl.viewport(0,0,w,h);return [w,h];}
+function paintSky(w,h){let c=sky.getContext('2d');c.clearRect(0,0,w,h);let gradient=c.createLinearGradient(0,0,0,h);let cols=night?[[0,'#9c647d'],[.35,'#e3a18a'],[.60,'#f5c5a3'],[1,'#49607b']]:[[0,'#7baed1'],[.35,'#b3d8e4'],[.68,'#f1dfbc'],[1,'#9ac5d1']];cols.forEach(v=>gradient.addColorStop(...v));c.fillStyle=gradient;c.fillRect(0,0,w,h);
+// warm coastal sun, distant city skyline silhouette (scenery, not a photograph)
+let sx=w*.13,sy=h*.47,rad=Math.max(48,w*.08);let g=c.createRadialGradient(sx,sy,3,sx,sy,rad*3);g.addColorStop(0,'#ffeec5c9');g.addColorStop(.2,'#ffd9a580');g.addColorStop(1,'#ffdaa500');c.fillStyle=g;c.fillRect(0,0,w,h);c.beginPath();c.arc(sx,sy,rad*.32,0,Math.PI*2);c.fillStyle='#fff0c8';c.fill();
+let baseline=h*.63;let sea=c.createLinearGradient(0,baseline,0,h);sea.addColorStop(0,night?'#658196':'#76abc3');sea.addColorStop(.5,night?'#46677f':'#6f9bb1');sea.addColorStop(1,night?'#384d66':'#5a8494');c.fillStyle=sea;c.fillRect(0,baseline,w,h-baseline);let coords=[];let bx=w*.57;for(let i=0;i<42;i++){let bw=4+(i*17%11),ht=9+(i*19%57);coords.push([bx+i*11,baseline-ht,bw,ht]);}c.fillStyle=night?'#66748774':'#8298a56d';for(let [x,y,bw,ht] of coords)c.fillRect(x,y,bw,ht);c.strokeStyle='#f7dfc23b';c.beginPath();c.moveTo(0,baseline);c.lineTo(w,baseline);c.stroke();}
+// CPU perspective rendering fallback for restricted browsers and systems that block WebGL.
+// This draws the same triangle meshes from the true 3D model, not an image placeholder.
+let cpuFrame=0;
+function cpuPaint(vp,w,h,eye){
+ let ctx=cpuContext;ctx.clearRect(0,0,w,h);
+ let polygons=[];
+ const add=(arr,alpha)=>{
+  for(let j=0;j<arr.length;j+=30){
+   let x0=arr[j],y0=arr[j+1],z0=arr[j+2],nx=arr[j+3],ny=arr[j+4],nz=arr[j+5];
+   if(alpha===1 && (nx*(eye[0]-x0)+ny*(eye[1]-y0)+nz*(eye[2]-z0)) < 0)continue;
+   let coords=[],sumZ=0,visible=true;
+   for(let k=0;k<3;k++){
+    let b=j+k*10,x=arr[b],y=arr[b+1],z=arr[b+2];
+    let q=vp[3]*x+vp[7]*y+vp[11]*z+vp[15];
+    if(q<=.1){visible=false;break;}
+    let cx=vp[0]*x+vp[4]*y+vp[8]*z+vp[12],cy=vp[1]*x+vp[5]*y+vp[9]*z+vp[13];
+    coords.push((cx/q*.5+.5)*w,(.5-cy/q*.5)*h);sumZ+=q;
+   }
+   if(!visible)continue;
+   if(Math.max(coords[0],coords[2],coords[4])<0||Math.min(coords[0],coords[2],coords[4])>w||Math.max(coords[1],coords[3],coords[5])<0||Math.min(coords[1],coords[3],coords[5])>h)continue;
+   let light=Math.max(.05,nx*-.35+ny*.81+nz*-.52);
+   let shade=(night?.48:.7)+light*.42;
+   let em=arr[j+9];let r=Math.min(255,Math.round(255*(arr[j+6]*shade+em*.46))),g=Math.min(255,Math.round(255*(arr[j+7]*shade+em*.30))),b=Math.min(255,Math.round(255*(arr[j+8]*shade+em*.15)));
+   let color=`rgb(${r} ${g} ${b})`;
+   polygons.push([sumZ/3,coords,color,alpha]);
+  }
+ };
+ add(geom.terrain,1);polygons.sort((a,b)=>b[0]-a[0]);paintPolygons();polygons=[];
+ add(geom.opaque,1);add(geom.glass,.37);
+ polygons.sort((a,b)=>b[0]-a[0]);
+ paintPolygons();
+ function paintPolygons(){for(let poly of polygons){ctx.globalAlpha=poly[3];ctx.fillStyle=poly[2];let c=poly[1];ctx.beginPath();ctx.moveTo(c[0],c[1]);ctx.lineTo(c[2],c[3]);ctx.lineTo(c[4],c[5]);ctx.closePath();ctx.fill();}}
+ ctx.globalAlpha=1;
+}
+let lastSky=0;function render(){let [w,h]=size();if(lastSky!==w*100000+h+night){paintSky(w,h);lastSky=w*100000+h+night;}
+for(let k of ['yaw','pitch','dist'])camera[k]+=(desired[k]-camera[k])*.115;for(let i=0;i<3;i++)camera.target[i]+=(desired.target[i]-camera.target[i])*.115;
+let dist=camera.dist,p=camera.pitch,y=camera.yaw;let eye=[camera.target[0]+dist*Math.sin(y)*Math.cos(p),camera.target[1]+dist*Math.sin(p),camera.target[2]+dist*Math.cos(y)*Math.cos(p)];let vp=mul(perspective(Math.PI/3.55,w/h,.1,1400),lookAt(eye,camera.target,[0,1,0]));if(!hasWebGL){if(++cpuFrame%4===0)cpuPaint(vp,w,h,eye);requestAnimationFrame(render);return;}gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(prog);gl.uniformMatrix4fv(loc.vp,false,vp);gl.uniform3fv(loc.camera,eye);gl.uniform1f(loc.night,night);gl.uniform3fv(loc.fog,night?[.75,.57,.55]:[.73,.78,.79]);
+gl.depthMask(true);gl.uniform1f(loc.alpha,1);gl.bindVertexArray(drawables.terrain.vao);gl.drawArrays(gl.TRIANGLES,0,drawables.terrain.count);gl.bindVertexArray(drawables.opaque.vao);gl.drawArrays(gl.TRIANGLES,0,drawables.opaque.count);
+gl.depthMask(false);gl.uniform1f(loc.alpha,.38);gl.disable(gl.CULL_FACE);gl.bindVertexArray(drawables.glass.vao);gl.drawArrays(gl.TRIANGLES,0,drawables.glass.count);gl.enable(gl.CULL_FACE);gl.depthMask(true);gl.bindVertexArray(null);
+requestAnimationFrame(render);}
+let dragging=false,prevX=0,prevY=0,pointers=new Map(),oldPinch=0;
+canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,[e.clientX,e.clientY]);dragging=true;prevX=e.clientX;prevY=e.clientY;});
+canvas.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;const old=pointers.get(e.pointerId);pointers.set(e.pointerId,[e.clientX,e.clientY]);if(pointers.size===2){let pts=[...pointers.values()],distance=Math.hypot(pts[0][0]-pts[1][0],pts[0][1]-pts[1][1]);if(oldPinch)desired.dist=Math.max(35,Math.min(380,desired.dist*oldPinch/distance));oldPinch=distance;}else{let dx=e.clientX-old[0],dy=e.clientY-old[1];if(e.shiftKey){desired.target[0]-=dx*.09;desired.target[2]-=dy*.08;}else{desired.yaw-=dx*.006;desired.pitch=Math.max(.055,Math.min(1.54,desired.pitch+dy*.005));}}});
+const pointerEnd=e=>{pointers.delete(e.pointerId);if(pointers.size<2)oldPinch=0;dragging=false;};canvas.addEventListener('pointerup',pointerEnd);canvas.addEventListener('pointercancel',pointerEnd);
+canvas.addEventListener('wheel',e=>{e.preventDefault();desired.dist=Math.max(34,Math.min(380,desired.dist*Math.exp(e.deltaY*.001)));},{passive:false});
+document.querySelectorAll('[data-camera]').forEach(b=>b.onclick=()=>viewMode(b.dataset.camera));
+function drawFloorplan(){
+ let svg=$('floorplan');let a=[];
+ a.push('<rect x="8" y="7" width="134" height="96" fill="#273745" stroke="#b8a17e" rx="2"/>');
+ for(let r=0;r<3;r++)for(let c=0;c<2;c++){
+  let x=9+c*66,y=8+r*31.5;
+  a.push(`<rect x="${x}" y="${y}" width="65" height="30.7" fill="${eventMode==='meeting'?'#405765':'#42554f'}" stroke="#e9c994" stroke-width="1.1"/>`);
+ }
+ for(let r=0;r<3;r++){
+  let y=8+r*31.5;
+  a.push(`<rect x="145" y="${y}" width="65" height="30.7" rx="1" fill="${r<extras?'#53666b':'#192a37'}" stroke="${r<extras?'#eac98f':'#6e8290'}" stroke-width="1.3" stroke-dasharray="${r<extras?'0':'4 3'}"/>`);
+ }
+ if(eventMode==='meeting'){
+  for(let r=0;r<3;r++){
+   let y=23+r*31.5;
+   a.push(`<text x="42" y="${y}" font-size="8.5" text-anchor="middle" fill="#e8ede9">Meeting</text><text x="107" y="${y}" font-size="8.5" text-anchor="middle" fill="#e8ede9">Meeting</text>`);
+  }
+ }else{
+  for(let y of [38.5,70])a.push(`<path d="M 15 ${y} H 136" stroke="#f5cc83" stroke-width="2.5" stroke-dasharray="8 5"/>`);
+  a.push(`<text x="74" y="57" font-size="11" text-anchor="middle" font-weight="bold" fill="#fff1d9">${eventMode==='party'?'PARTY + STAGE':'EXPANDED HALL'}</text>`);
+ }
+ if(extras){a.push(`<text x="176" y="107" font-size="7.5" text-anchor="middle" fill="#eac98f">+${extras} docked bay${extras===1?'':'s'}</text>`);}
+ svg.innerHTML=a.join('');
+}
+function updateModes(){
+ document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===eventMode));
+ $('unitCount').textContent=extras;
+ let info={party:['Indoor celebration hall','The six connected container bays open their side partitions. Stage, dance floor, bar and tables are INSIDE the sheltered building.'],meeting:['Six meeting rooms','The same shells change to six enclosed conference rooms with internal glazing, furniture and displays.'],expanded:['Expanded indoor hall','The internal partitions retract. Theater seating is installed inside the unified hall, and extra container bays dock directly to its eastern edge.']}[eventMode];
+ $('modeTitle').textContent=info[0];$('modeDesc').textContent=info[1]+` ${extras} additional bay${extras===1?' is':'s are'} physically connected.`;
+ drawFloorplan();buildScene();
+}
+function syncCutaway(){let btn=$('cutawaybtn');btn.textContent=cutaway?'▧ Restore event container roofs':'◫ Reveal indoor event rooms';btn.setAttribute('aria-pressed',cutaway?'true':'false');}
+$('cutawaybtn').onclick=()=>{cutaway=!cutaway;syncCutaway();buildScene();};
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{eventMode=b.dataset.mode;updateModes();viewMode('events');});
+$('minus').onclick=()=>{extras=Math.max(0,extras-1);updateModes();viewMode('events');};$('plus').onclick=()=>{extras=Math.min(3,extras+1);updateModes();viewMode('events');};
+$('lightbtn').onclick=()=>{night=1-night;lastSky=0;$('lightbtn').textContent=night?'☀ Switch to daylight':'☾ Switch to sunset';};
+$('resetbtn').onclick=()=>{eventMode='party';extras=1;cutaway=false;syncCutaway();updateModes();viewMode('aerial');};
+$('exportbtn').onclick=()=>{let o=['# 974 Hotel adaptive resort v4, indoor-convertible container event hall','# Triangulated OBJ generated from the interactive scene','# Units are conceptual; material palette contained in the HTML model.'];let i=1;for(let f of exported){for(const v of f)o.push('v '+v.map(x=>x.toFixed(4)).join(' '));o.push(`f ${i} ${i+1} ${i+2}`);i+=3;}let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([o.join('\n')],{type:'text/plain'}));a.download='974_Hotel_'+eventMode+'_'+extras+'_modules.obj';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),60000);};
+try{syncCutaway();updateModes();$('loader').remove();requestAnimationFrame(render);}catch(error){console.error(error);$('loader').textContent='3D scene error: '+error.message;}
+</script></body></html>
